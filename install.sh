@@ -1,6 +1,14 @@
 #!/bin/bash
 
-echo "Installing es9018k2m i2c Control Plugin"
+echo "Installing ES9018K2M i2c Control Plugin"
 
-#requred to end the plugin install
+
+PLUGIN_DIR="$(dirname "$0")"
+cd "$PLUGIN_DIR"
+
+
+echo "Installing npm dependencies..."
+npm install
+
+
 echo "plugininstallend"
