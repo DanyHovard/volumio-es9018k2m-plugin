@@ -1,7 +1,7 @@
 {
   "name": "es9018k2m_control",
-  "version": "0.1.0",
-  "description": "i2c ES9018K2M function control Plugin for Volumio2",
+  "version": "0.1.1",
+  "description": "i2c ES9018K2M function control Plugin for Volumio3",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,14 +11,14 @@
   "license": "ISC",
   "volumio_info": {
     "prettyName": "ES9018K2M Control",
-    "icon": "fa-cogs",
-    "plugin_type": "miscellanea"
+    "plugin_type": "miscellanea",
+    "version": "0.1.1",
+    "volumio_version": "3.0.0"
   },
   "dependencies": {
-    "fs-extra": "^0.30.0",
-    "kew": "^0.7.0",
+    "fs-extra": "^11.1.1",
     "v-conf": "^1.4.0",
-    "i2c": "^0.2.3"
+    "i2c-bus": "^5.2.2"
   },
   "repository": {
     "type": "git",
