@@ -2,131 +2,138 @@
 
 const fs = require('fs');
 const path = require('path');
-const BaseController = require('volumio-controller').BaseController;
+const config = require('v-conf');
 
 module.exports = ControllerEs9018k2m;
 
 function ControllerEs9018k2m(context) {
     this.context = context;
-    this.commandRouter = this.context.coreCommand;
-    this.logger = this.context.logger;
-    this.configManager = this.context.configManager;
+    this.commandRouter = context.coreCommand;
+    this.logger = context.logger;
+
     this.configFile = path.join(__dirname, 'config.json');
-    this.config = {};
+    this.config = new config();
 }
 
-ControllerEs9018k2m.prototype.onVolumioStart = async function () {
-    this.logger.info('ES9018K2M Controller starting...');
-    this.loadConfig();
-};
+/* =========================
+   LIFECYCLE
+========================= */
 
-ControllerEs9018k2m.prototype.loadConfig = function () {
+ControllerEs9018k2m.prototype.onVolumioStart = function () {
+    this.logger.info('ES9018K2M plugin starting');
+
     try {
-        if (fs.existsSync(this.configFile)) {
-            const data = fs.readFileSync(this.configFile);
-            this.config = JSON.parse(data);
-        } else {
-            this.logger.warn('Config file not found, using defaults');
-            this.config = {};
-        }
+        this.config.loadFile(this.configFile);
+        this.logger.info('Config loaded');
     } catch (e) {
-        this.logger.error('Error loading config.json: ' + e);
-        this.config = {};
+        this.logger.error('Failed to load config: ' + e);
     }
+
+    return Promise.resolve();
 };
 
-ControllerEs9018k2m.prototype.saveConfig = function () {
-    try {
-        fs.writeFileSync(this.configFile, JSON.stringify(this.config, null, 2));
-        this.logger.info('Config saved');
-    } catch (e) {
-        this.logger.error('Error saving config.json: ' + e);
-    }
+ControllerEs9018k2m.prototype.onStop = function () {
+    this.logger.info('ES9018K2M plugin stopped');
+    return Promise.resolve();
 };
 
-// ********** UI METHODS **********
+ControllerEs9018k2m.prototype.onRestart = function () {
+    this.logger.info('ES9018K2M plugin restarted');
+    return Promise.resolve();
+};
+
+/* =========================
+   UI
+========================= */
+
 ControllerEs9018k2m.prototype.getUIConfig = function () {
     const uiConfigPath = path.join(__dirname, 'UIConfig.json');
-    let uiconfig = {};
+
     try {
-        uiconfig = JSON.parse(fs.readFileSync(uiConfigPath));
+        const uiconfig = JSON.parse(fs.readFileSync(uiConfigPath));
+        return Promise.resolve(uiconfig);
     } catch (e) {
-        this.logger.error('Cannot load UIConfig.json: ' + e);
+        this.logger.error('Failed to load UIConfig.json: ' + e);
+        return Promise.reject(e);
     }
-    return uiconfig;
 };
 
 ControllerEs9018k2m.prototype.getConfigurationFiles = function () {
     return ['config.json'];
 };
 
-// ********** API METHODS **********
-ControllerEs9018k2m.prototype.execDeviceCheckControl = function (data) {
-    this.logger.info('Checking device status...');
-    // Тут можешь вставить реальный код проверки устройства
-    return true;
-};
-
-ControllerEs9018k2m.prototype.execResetDeviceControl = function (data) {
-    this.logger.info('Resetting device...');
-    // Реальная логика сброса
-    return true;
-};
+/* =========================
+   CONTROLS
+========================= */
 
 ControllerEs9018k2m.prototype.execVolumeControl = function (data) {
-    this.logger.info('Setting volume: ' + JSON.stringify(data));
-    this.config.volumeLevel.value = data.volume_adjust || this.config.volumeLevel.value;
-    this.saveConfig();
-    return true;
-};
+    this.logger.info('Volume control: ' + JSON.stringify(data));
 
-ControllerEs9018k2m.prototype.execBalanceControl = function (data) {
-    this.logger.info('Setting balance: ' + JSON.stringify(data));
-    this.config.balance.value = data.balance_adjust || this.config.balance.value;
-    this.config.channel.value = data.channel_switch.value;
-    this.config.channelLabel.value = data.channel_switch.label;
-    this.saveConfig();
-    return true;
-};
+    if (data?.volume_adjust !== undefined) {
+        this.config.set('volumeLevel.value', data.volume_adjust);
+    }
 
-ControllerEs9018k2m.prototype.execResetBalanceControl = function () {
-    this.logger.info('Resetting balance');
-    this.config.balance.value = 0;
-    this.config.channel.value = true;
-    this.config.channelLabel.value = 'Left/Right';
-    this.saveConfig();
-    return true;
-};
-
-ControllerEs9018k2m.prototype.execDigitalFilterControl = function (data) {
-    this.logger.info('Setting digital filters: ' + JSON.stringify(data));
-    this.config.fir.value = data.fir_filter.value;
-    this.config.firLabel.value = data.fir_filter.label;
-    this.config.iir.value = data.iir_filter.value;
-    this.config.iirLabel.value = data.iir_filter.label;
-    this.config.deemphasis.value = data.deemphasis_filter.value;
-    this.config.deemphasisLabel.value = data.deemphasis_filter.label;
-    this.saveConfig();
-    return true;
-};
-
-ControllerEs9018k2m.prototype.execDpllControl = function (data) {
-    this.logger.info('Setting DPLL: ' + JSON.stringify(data));
-    this.config.i2sDPLL.value = data.i2sDPLL.value;
-    this.config.i2sLabelDPLL.value = data.i2sDPLL.label;
-    this.config.dsdDPLL.value = data.dsdDPLL.value;
-    this.config.dsdLabelDPLL.value = data.dsdDPLL.label;
-    this.saveConfig();
-    return true;
-};
-
-// ********** VOLATILE **********
-ControllerEs9018k2m.prototype.onStop = function () {
-    this.logger.info('ES9018K2M Controller stopped');
     return Promise.resolve();
 };
 
-ControllerEs9018k2m.prototype.onRestart = function () {
-    this.logger.info('ES9018K2M Controller restarted');
+ControllerEs9018k2m.prototype.execBalanceControl = function (data) {
+    this.logger.info('Balance control: ' + JSON.stringify(data));
+
+    if (data?.balance_adjust !== undefined) {
+        this.config.set('balance.value', data.balance_adjust);
+    }
+
+    if (data?.channel_switch) {
+        this.config.set('channel.value', data.channel_switch.value);
+        this.config.set('channelLabel.value', data.channel_switch.label);
+    }
+
+    return Promise.resolve();
+};
+
+ControllerEs9018k2m.prototype.execResetBalanceControl = function () {
+    this.logger.info('Reset balance');
+
+    this.config.set('balance.value', 0);
+    this.config.set('channel.value', true);
+    this.config.set('channelLabel.value', 'Left/Right');
+
+    return Promise.resolve();
+};
+
+ControllerEs9018k2m.prototype.execDigitalFilterControl = function (data) {
+    this.logger.info('Digital filter control: ' + JSON.stringify(data));
+
+    if (data?.fir_filter) {
+        this.config.set('fir.value', data.fir_filter.value);
+        this.config.set('firLabel.value', data.fir_filter.label);
+    }
+
+    if (data?.iir_filter) {
+        this.config.set('iir.value', data.iir_filter.value);
+        this.config.set('iirLabel.value', data.iir_filter.label);
+    }
+
+    if (data?.deemphasis_filter) {
+        this.config.set('deemphasis.value', data.deemphasis_filter.value);
+        this.config.set('deemphasisLabel.value', data.deemphasis_filter.label);
+    }
+
+    return Promise.resolve();
+};
+
+ControllerEs9018k2m.prototype.execDpllControl = function (data) {
+    this.logger.info('DPLL control: ' + JSON.stringify(data));
+
+    if (data?.i2sDPLL) {
+        this.config.set('i2sDPLL.value', data.i2sDPLL.value);
+        this.config.set('i2sLabelDPLL.value', data.i2sDPLL.label);
+    }
+
+    if (data?.dsdDPLL) {
+        this.config.set('dsdDPLL.value', data.dsdDPLL.value);
+        this.config.set('dsdLabelDPLL.value', data.dsdDPLL.label);
+    }
+
     return Promise.resolve();
 };
