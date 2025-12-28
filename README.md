@@ -1,6 +1,14 @@
-# volumio-es9018k2m-plugin
-ES9018K2M plugin for Volumio 4. This plugin controls es9018k2m chip by i2c so user must connect 
-i2c pins between raspberry pi and es9018k2m DAC. 
+# ES9018K2M I²C Control Plugin for Volumio
+
+Volumio 4 plugin for direct hardware control of the ES9018K2M DAC via I²C.
+Provides real-time control over volume, balance, digital filters, DPLL settings and device status using ES9018K2M internal registers.
+
+⚠️ Requirements
+- Volumio OS
+- ES9018K2M DAC connected via I²C
+- Enabled I²C interface
+- Correct I²C address (default: 0x48)
+- Node.js environment provided by Volumio
 
 Updated for Volumio 4.073 compatibility.
 
