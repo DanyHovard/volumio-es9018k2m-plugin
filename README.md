@@ -3,6 +3,17 @@
 Volumio 4 plugin for direct hardware control of the ES9018K2M DAC via I²C.
 Provides real-time control over volume, balance, digital filters, DPLL settings and device status using ES9018K2M internal registers.
 
+
+#### Install instructions. Tested in Volumio 4.073:
+    cd /home/volumio
+    wget https://github.com/DanyHovard/volumio-es9018k2m-plugin/archive/refs/tags/1.0.1.zip
+    miniunzip 1.0.1.zip
+    cd volumio-es9018k2m-plugin-1.0.1/
+    sudo apt update
+    sudo apt install -y build-essential
+    npm install
+    volumio plugin install
+
 ⚠️ Requirements
 - Volumio OS
 - ES9018K2M DAC connected via I²C
